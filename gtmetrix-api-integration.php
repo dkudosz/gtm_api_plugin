@@ -51,9 +51,11 @@ function activate_gtmetrix_api_integration() {
 	$table_name = $wpdb->prefix . 'gtm_settings';
 	
 	$charset_collate = $wpdb->get_charset_collate();
-
+	
+	//Create Database table
 	$sql = "CREATE TABLE $table_name (
 		id mediumint(9) NOT NULL AUTO_INCREMENT,
+		api_email varchar(55) DEFAULT '' NOT NULL,
 		api_key varchar(55) DEFAULT '' NOT NULL,
 		PRIMARY KEY  (id)
 	) $charset_collate;";
@@ -62,6 +64,14 @@ function activate_gtmetrix_api_integration() {
 	dbDelta( $sql );
 
 	add_option( 'gtm_db_version', $gtm_db_version );
+	
+	//Create PDF Reports directory
+	$upload = wp_upload_dir();
+    $upload_dir = $upload['basedir'];
+    $upload_dir = $upload_dir . '/pdf-reports';
+    if (! is_dir($upload_dir)) {
+		mkdir( $upload_dir, 0700 );
+    }
 	
 	require_once plugin_dir_path( __FILE__ ) . 'includes/class-gtmetrix-api-integration-activator.php';
 	Gtmetrix_Api_Integration_Activator::activate();
@@ -72,6 +82,14 @@ function activate_gtmetrix_api_integration() {
  * This action is documented in includes/class-gtmetrix-api-integration-deactivator.php
  */
 function deactivate_gtmetrix_api_integration() {
+	
+	//Remove DB Table
+	//if( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) exit();
+    global $wpdb;
+	$table_name = $wpdb->prefix . 'gtm_settings';
+    $wpdb->query( "DROP TABLE IF EXISTS $table_name" );
+    delete_option("gtm_db_version");
+	
 	require_once plugin_dir_path( __FILE__ ) . 'includes/class-gtmetrix-api-integration-deactivator.php';
 	Gtmetrix_Api_Integration_Deactivator::deactivate();
 }
@@ -85,8 +103,6 @@ register_deactivation_hook( __FILE__, 'deactivate_gtmetrix_api_integration' );
  */
 require plugin_dir_path( __FILE__ ) . 'includes/class-gtmetrix-api-integration.php';
 require plugin_dir_path( __FILE__ ) . 'gtmetrix-api-integration-admin.php';
-require plugin_dir_path( __FILE__ ) . 'gtmetrix-api-integration-main.php';
-require plugin_dir_path( __FILE__ ) . 'gtmetrix-api-integration-db.php';
 
 /**
  * Begins execution of the plugin.
