@@ -58,7 +58,7 @@ function gtm_analyse() {
 		echo "GTmetrix can run tests from: " . $location["name"] . " using id: " . $location["id"] . " default (" . $location["default"] . ")\n";
 	}
 	
-	
+	//Create PDF report
 	
 	
 	
@@ -79,6 +79,79 @@ function gtm_gen() {
 	if($_POST['analyse'] && $_POST['gtm_url']) {
 		gtm_analyse();
 	}
+	
+	//demo code
+	require('fpdf/fpdf.php');
+	
+	$logo = get_theme_mod( 'custom_logo' );
+	$image = wp_get_attachment_image_src( $logo , 'full' );
+	
+	$upload_dir   = wp_upload_dir();
+	$filename = $upload_dir['basedir'].'/pdf-reports/test.pdf';
+	
+	$pdf = new FPDF('P','mm','A4');
+	$pdf->AddPage();
+	$pdf->SetFont('Arial','B',16);
+	$pdf->SetTitle('title');
+	$pdf->Image($image[0],10,10,90,0,'PNG');
+	
+	$pdf->SetFontSize(20);
+	$pdf->Text(112,20,'Pagespeed:');
+	
+	$pdf->SetFontSize(20);
+	$pdf->Text(112,50,'YSlow:');
+	
+	$pagespeed = 90;
+	$y_slow = 60;
+	
+	if($pagespeed > 50 && $pagespeed < 80) {
+		$pdf->SetTextColor(245,161,29);
+	}
+	if($pagespeed == 50 || $pagespeed < 50) {
+		$pdf->SetTextColor(235,57,59);
+	}
+	if($pagespeed > 80) {
+		$pdf->SetTextColor(113,187,48);
+	}
+	
+	$pdf->SetFontSize(90);
+	$pdf->Text(158,36,$pagespeed);
+	
+	if($y_slow > 50 && $y_slow < 80) {
+		$pdf->SetTextColor(245,161,29);
+	}
+	if($y_slow == 50 || $y_slow < 50) {
+		$pdf->SetTextColor(235,57,59);
+	}
+	if($y_slow > 80) {
+		$pdf->SetTextColor(113,187,48);
+	}
+	
+	$pdf->SetFontSize(90);
+	$pdf->Text(158,65,$y_slow);
+	
+	$pdf->SetTextColor(0,0,0);
+	
+	$pdf->SetFontSize(20);
+	$pdf->Text(10,60,'Performance Report');
+	
+	$pdf->SetFontSize(14);
+	$pdf->Text(10,70,'Website: ');
+	$pdf->Text(10,77,'Date: ');
+	
+	$pdf->SetFontSize(17);
+	$pdf->Text(10,90,'Details: ');
+	
+	$pdf->SetFontSize(14);
+	$pdf->Text(10,97,'Fully Loaded Time: ');
+	$pdf->Text(10,104,'Total Page Size: ');
+	$pdf->Text(10,111,'Requests: ');
+	
+	
+	
+	$pdf->Output($filename, 'F');
+	
+	//demo code
 	
 	return ob_get_clean();
 }
