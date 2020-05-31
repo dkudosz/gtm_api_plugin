@@ -6,6 +6,7 @@ function gtm_analyse() {
 
 	$credentials = gtm_get_credentials();
 	$url = sanitize_text_field($_POST['gtm_url']);
+	$timestamp = date('j/n/Y G:i:s', time());
 	
 	$test = new Services_WTF_Test($credentials[0]->api_email, $credentials[0]->api_key);
 	
@@ -33,9 +34,88 @@ function gtm_analyse() {
 	$testid = $test->get_test_id();
 	echo "Test completed succesfully with ID $testid\n";
 	$results = $test->results();
-	foreach ($results as $result => $data) {
-		echo "  $result => $data\n";
+	
+	//Create PDF report
+	require('fpdf/fpdf.php');
+	
+	$logo = get_theme_mod( 'custom_logo' );
+	$image = wp_get_attachment_image_src( $logo , 'full' );
+	
+	$upload_dir   = wp_upload_dir();
+	$filename = $upload_dir['basedir'].'/pdf-reports/'.$testid.'.pdf'; //save custom report in uploads/pdf-reports/ folder
+	
+	$pdf = new FPDF('P','mm','A4');
+	$pdf->AddPage();
+	$pdf->SetFont('Arial','B',16);
+	$pdf->SetTitle('title');
+	$pdf->Image($image[0],10,10,90,0,'PNG');
+	
+	$pdf->SetFontSize(20);
+	$pdf->Text(112,20,'Pagespeed:');
+	
+	$pdf->SetFontSize(20);
+	$pdf->Text(112,50,'YSlow:');
+	
+	echo '<pre>';
+	print_r($results);
+	echo '</pre>';
+	
+	$pagespeed = $results['pagespeed_score'];
+	$y_slow = $results['yslow_score'];
+	
+	if($pagespeed > 50 && $pagespeed < 80) {
+		$pdf->SetTextColor(245,161,29);
 	}
+	if($pagespeed == 50 || $pagespeed < 50) {
+		$pdf->SetTextColor(235,57,59);
+	}
+	if($pagespeed > 80) {
+		$pdf->SetTextColor(113,187,48);
+	}
+	
+	$pdf->SetFontSize(90);
+	$pdf->Text(158,36,$pagespeed);
+	
+	if($y_slow > 50 && $y_slow < 80) {
+		$pdf->SetTextColor(245,161,29);
+	}
+	if($y_slow == 50 || $y_slow < 50) {
+		$pdf->SetTextColor(235,57,59);
+	}
+	if($y_slow > 80) {
+		$pdf->SetTextColor(113,187,48);
+	}
+	
+	$pdf->SetFontSize(90);
+	$pdf->Text(158,65,$y_slow);
+	
+	$pdf->SetTextColor(0,0,0);
+	
+	$pdf->SetFontSize(20);
+	$pdf->Text(10,60,'Performance Report');
+	
+	$pdf->SetFontSize(14);
+	$pdf->Text(10,70,'Website: '.$_POST['gtm_url']);
+	$pdf->Text(10,77,'Date and time: '.$timestamp);
+	
+	$pdf->SetFontSize(17);
+	$pdf->Text(10,90,'Details: ');
+	
+	$fully_loaded_time = $results['fully_loaded_time'] / 1000;
+	$fully_loaded_time = number_format((float)$fully_loaded_time, 1, '.', '');
+	$page_size = ($results['page_bytes'] + $results['html_bytes']) / 1000000;
+	$page_size = number_format((float)$page_size, 2, '.', '');
+	
+	$pdf->SetFontSize(14);
+	$pdf->Text(10,97,'Fully Loaded Time: '.$fully_loaded_time.'s');
+	$pdf->Text(10,104,'Total Page Size: '.$page_size.'MB');
+	$pdf->Text(10,111,'Requests: '.$results['page_elements']);
+	
+	
+	
+	$pdf->Output($filename, 'F');
+	/**/
+	
 	echo "\nResources\n";
 	$resources = $test->resources();
 	foreach ($resources as $resource => $url) {
@@ -57,10 +137,6 @@ function gtm_analyse() {
 	foreach ($locations as $location) {
 		echo "GTmetrix can run tests from: " . $location["name"] . " using id: " . $location["id"] . " default (" . $location["default"] . ")\n";
 	}
-	
-	
-	
-	
 	
 }
 /*** END - Analyse and Generate Report ***/

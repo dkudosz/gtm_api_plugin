@@ -9,14 +9,14 @@
  * that starts the plugin.
  *
  * @link              https://yupscode.com/our-team
- * @since             1.0.0
+ * @since             0.0.4
  * @package           Gtmetrix_Api_Integration
  *
  * @wordpress-plugin
  * Plugin Name:       GTmetrix API integration
  * Plugin URI:        https://yupscode.com/
  * Description:       This is a short description of what the plugin does. It's displayed in the WordPress admin area.
- * Version:           1.0.0
+ * Version:           0.0.4
  * Author:            Damian Kudosz
  * Author URI:        https://yupscode.com/our-team
  * License:           GPL-2.0+
@@ -35,14 +35,14 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'GTMETRIX_API_INTEGRATION_VERSION', '1.0.0' );
+define( 'GTMETRIX_API_INTEGRATION_VERSION', '0.0.4' );
 
 /**
  * The code that runs during plugin activation.
  * This action is documented in includes/class-gtmetrix-api-integration-activator.php
  */
 global $gtm_db_version;
-$gtm_db_version = '1.0';
+$gtm_db_version = '0.1';
 
 function activate_gtmetrix_api_integration() {
 	global $wpdb;
@@ -126,9 +126,9 @@ add_action('init', 'do_output_buffer');
 function do_output_buffer() {
         ob_start();
 }
+/*** END - Buffer ***/
 
 /*** Create Admin page ***/
-
 function gtm_admin_menu() {
 	add_menu_page(
 		__( 'GTmetrix', 'gtmetrix-plugin' ),
